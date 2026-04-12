@@ -1,6 +1,6 @@
 {
   "name": "prepare-dist-action",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "GitHub Action that prepares a dist directory for npm publishing",
   "type": "module",
