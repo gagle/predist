@@ -1,0 +1,24 @@
+name: 'prepare-dist'
+description: 'Prepares a dist directory for npm publishing'
+
+inputs:
+  path:
+    description: 'Package directory'
+    default: '.'
+  dist:
+    description: 'Dist subdirectory'
+    default: 'dist'
+  tag:
+    description: 'Git tag to verify against package.json version (e.g. github.ref_name)'
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Prepare dist for publishing
+      shell: bash
+      run: node "${{ github.action_path }}/dist/main.mjs"
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_DIST: ${{ inputs.dist }}
+        INPUT_TAG: ${{ inputs.tag }}
