@@ -1,0 +1,188 @@
+name: Test Action
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-root-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+
+      - name: Create fixture
+        run: |
+          mkdir -p fixture/dist
+          cat > fixture/package.json << 'PKG'
+          {
+            "name": "root-pkg",
+            "version": "1.0.0",
+            "main": "./dist/index.cjs",
+            "module": "./dist/index.mjs",
+            "exports": {
+              ".": {
+                "import": { "types": "./dist/index.d.mts", "default": "./dist/index.mjs" },
+                "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+              }
+            },
+            "files": ["dist"],
+            "scripts": { "build": "tsdown" },
+            "devDependencies": { "tsdown": "^0.21.0" }
+          }
+          PKG
+          echo "# Root Package" > fixture/README.md
+          echo "MIT" > fixture/LICENSE
+
+      - name: Run action
+        uses: ./
+        with:
+          path: fixture
+          tag: v1.0.0
+
+      - name: Verify package.json
+        run: |
+          cd fixture/dist
+          node -e "
+            const pkg = require('./package.json');
+            const assert = require('assert');
+            assert.strictEqual(pkg.main, './index.cjs');
+            assert.strictEqual(pkg.module, './index.mjs');
+            assert.strictEqual(pkg.exports['.'].import.default, './index.mjs');
+            assert.strictEqual(pkg.scripts, undefined);
+            assert.strictEqual(pkg.devDependencies, undefined);
+            assert.strictEqual(pkg.files, undefined);
+            console.log('Root package: OK');
+          "
+
+      - name: Verify metadata
+        run: |
+          test -f fixture/dist/README.md
+          test -f fixture/dist/LICENSE
+          echo "Metadata: OK"
+
+  test-workspace-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+
+      - name: Create fixture
+        run: |
+          mkdir -p fixture/packages/my-lib/dist
+          cat > fixture/packages/my-lib/package.json << 'PKG'
+          {
+            "name": "my-lib",
+            "version": "2.0.0",
+            "main": "dist/index.js",
+            "types": "dist/index.d.ts",
+            "exports": {
+              ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }
+            },
+            "bin": { "my-cli": "./dist/cli.js" },
+            "scripts": { "build": "tsc" },
+            "devDependencies": { "typescript": "^6.0.0" },
+            "dependencies": { "unplugin": "^3.0.0" }
+          }
+          PKG
+          echo "# My Lib" > fixture/README.md
+          echo "MIT" > fixture/LICENSE
+
+      - name: Run action
+        uses: ./
+        with:
+          path: fixture/packages/my-lib
+          tag: my-lib-v2.0.0
+
+      - name: Verify package.json
+        run: |
+          cd fixture/packages/my-lib/dist
+          node -e "
+            const pkg = require('./package.json');
+            const assert = require('assert');
+            assert.strictEqual(pkg.main, 'index.js');
+            assert.strictEqual(pkg.types, 'index.d.ts');
+            assert.strictEqual(pkg.exports['.'].default, './index.js');
+            assert.strictEqual(pkg.bin['my-cli'], './cli.js');
+            assert.strictEqual(pkg.scripts, undefined);
+            assert.strictEqual(pkg.devDependencies, undefined);
+            assert.deepStrictEqual(pkg.dependencies, { unplugin: '^3.0.0' });
+            console.log('Workspace package: OK');
+          "
+
+      - name: Verify metadata from repo root
+        run: |
+          test -f fixture/packages/my-lib/dist/README.md
+          test -f fixture/packages/my-lib/dist/LICENSE
+          echo "Metadata: OK"
+
+  test-nx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+
+      - name: Create fixture
+        run: |
+          mkdir -p fixture/packages/nx-lib/dist
+          mkdir -p fixture/packages/nx-lib/src/nx
+          cat > fixture/packages/nx-lib/package.json << 'PKG'
+          {
+            "name": "nx-lib",
+            "version": "3.0.0",
+            "main": "dist/index.js"
+          }
+          PKG
+          cat > fixture/packages/nx-lib/executors.json << 'EXE'
+          {
+            "executors": {
+              "run": {
+                "implementation": "./dist/nx/executor",
+                "schema": "./src/nx/schema.json"
+              }
+            }
+          }
+          EXE
+          echo '{"title":"Test"}' > fixture/packages/nx-lib/src/nx/schema.json
+
+      - name: Run action
+        uses: ./
+        with:
+          path: fixture/packages/nx-lib
+          tag: nx-lib-v3.0.0
+
+      - name: Verify executors.json
+        run: |
+          cd fixture/packages/nx-lib/dist
+          node -e "
+            const cfg = require('./executors.json');
+            const assert = require('assert');
+            assert.strictEqual(cfg.executors.run.implementation, './nx/executor');
+            assert.strictEqual(cfg.executors.run.schema, './nx/schema.json');
+            console.log('Executors: OK');
+          "
+
+      - name: Verify schema copied
+        run: |
+          test -f fixture/packages/nx-lib/dist/nx/schema.json
+          echo "Schema: OK"
