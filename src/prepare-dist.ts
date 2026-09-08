@@ -7,11 +7,13 @@ import { transformPackage } from './transform-package';
 import { copyMetadata } from './copy-metadata';
 import { nxConfigPlugin } from './plugins/nx-config';
 import { customElementsManifestPlugin } from './plugins/custom-elements-manifest';
+import { externalFilesPlugin } from './plugins/external-files';
 import { externalBinPlugin } from './plugins/external-bin';
 
 const BUILT_IN_PLUGINS: ReadonlyArray<PrepareDistPlugin> = [
   nxConfigPlugin(),
   customElementsManifestPlugin(),
+  externalFilesPlugin(),
   externalBinPlugin(),
 ];
 
