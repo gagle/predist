@@ -29,7 +29,6 @@ Also available as a CLI for use outside GitHub Actions:
 npx prepare-dist                      # equivalent to running the action
 npx prepare-dist --json               # emit a machine-readable report
 npx prepare-dist --tag v1.2.3         # verify tag matches package.json version
-npx prepare-dist --capabilities --json  # discover what this CLI can do
 ```
 
 Downstream automation should pin against the public CLI contract documented in [`docs/cli-api.md`](./docs/cli-api.md) — flags, exit codes, and JSON schemas.

@@ -6,5 +6,7 @@ export interface PrepareDistContext {
 
 export interface PrepareDistPlugin {
   readonly name: string;
-  execute(context: PrepareDistContext): void;
+  /** Return `false` to signal the plugin found nothing to do; anything else (including `void`, for
+   * backwards compat with existing custom plugins) counts as "applied" in the report. */
+  execute(context: PrepareDistContext): boolean | void;
 }

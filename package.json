@@ -1,6 +1,6 @@
 {
   "name": "prepare-dist",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "GitHub Action + CLI that prepares a dist directory for npm publishing",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -29,7 +29,7 @@
   },
   "packageManager": "pnpm@10.15.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "build": "tsdown",

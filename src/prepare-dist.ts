@@ -7,10 +7,12 @@ import { transformPackage } from './transform-package';
 import { copyMetadata } from './copy-metadata';
 import { nxConfigPlugin } from './plugins/nx-config';
 import { customElementsManifestPlugin } from './plugins/custom-elements-manifest';
+import { externalBinPlugin } from './plugins/external-bin';
 
 const BUILT_IN_PLUGINS: ReadonlyArray<PrepareDistPlugin> = [
   nxConfigPlugin(),
   customElementsManifestPlugin(),
+  externalBinPlugin(),
 ];
 
 export interface PrepareDistOptions {
@@ -47,8 +49,10 @@ export function prepareDist({
 
   const pluginsApplied: Array<string> = [];
   for (const plugin of [...BUILT_IN_PLUGINS, ...plugins]) {
-    plugin.execute({ packageDir, distDir, distName: dist });
-    pluginsApplied.push(plugin.name);
+    const result = plugin.execute({ packageDir, distDir, distName: dist });
+    if (result !== false) {
+      pluginsApplied.push(plugin.name);
+    }
   }
 
   return {

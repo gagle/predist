@@ -3,7 +3,6 @@ export interface CliOptions {
   readonly dist?: string;
   readonly tag?: string;
   readonly json?: boolean;
-  readonly capabilities?: boolean;
 }
 
 export interface VerifyTagReport {
@@ -40,32 +39,6 @@ export interface PrepareDistReport {
   };
   readonly versionVerification: VerifyTagReport | null;
   readonly durationMs: number;
-}
-
-export interface CapabilitiesFlag {
-  readonly name: string;
-  readonly type: "boolean" | "string";
-}
-
-export interface CapabilitiesJsonSchema {
-  readonly flag: string;
-  readonly schema: string;
-  readonly version: number;
-}
-
-export interface CapabilitiesExitCode {
-  readonly code: number;
-  readonly name: string;
-}
-
-export interface CapabilitiesReport {
-  readonly schemaVersion: 1;
-  readonly name: "prepare-dist";
-  readonly version: string;
-  readonly features: ReadonlyArray<string>;
-  readonly flags: ReadonlyArray<CapabilitiesFlag>;
-  readonly jsonSchemas: ReadonlyArray<CapabilitiesJsonSchema>;
-  readonly exitCodes: ReadonlyArray<CapabilitiesExitCode>;
 }
 
 export interface Logger {

@@ -37,26 +37,28 @@ describe('nxConfigPlugin', () => {
   const plugin = nxConfigPlugin();
 
   describe('no Nx configs', () => {
-    it('does nothing when no executor or generator files exist', () => {
-      plugin.execute({ packageDir, distDir, distName: 'dist' });
+    it('does nothing and returns false when no executor or generator files exist', () => {
+      const applied = plugin.execute({ packageDir, distDir, distName: 'dist' });
 
       expect(existsSync(join(distDir, 'executors.json'))).toBe(false);
       expect(existsSync(join(distDir, 'generators.json'))).toBe(false);
+      expect(applied).toBe(false);
     });
   });
 
   describe('executors.json', () => {
-    it('strips dist prefix from implementation paths', () => {
+    it('strips dist prefix from implementation paths and returns true', () => {
       writeConfig('executors.json', {
         executors: {
           keys: { implementation: './dist/nx/executor', schema: '' },
         },
       });
 
-      plugin.execute({ packageDir, distDir, distName: 'dist' });
+      const applied = plugin.execute({ packageDir, distDir, distName: 'dist' });
 
       const result = readDistConfig('executors.json');
       expect((result.executors as Record<string, Record<string, string>>).keys.implementation).toBe('./nx/executor');
+      expect(applied).toBe(true);
     });
 
     it('copies schema file and strips src/ prefix from path', () => {

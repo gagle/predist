@@ -1,5 +1,4 @@
 import { parseArgs } from 'node:util';
-import { buildCapabilitiesReport } from './capabilities';
 import { EXIT } from './exit-codes';
 import { prepareDist } from './prepare-dist';
 import { verifyTag } from './verify-tag';
@@ -36,7 +35,6 @@ export function parseCliArgs(argv: ReadonlyArray<string>): ParseCliArgsResult {
       dist: { type: 'string' },
       tag: { type: 'string' },
       json: { type: 'boolean', default: false },
-      capabilities: { type: 'boolean', default: false },
       help: { type: 'boolean', default: false },
     },
     allowPositionals: false,
@@ -50,7 +48,6 @@ export function parseCliArgs(argv: ReadonlyArray<string>): ParseCliArgsResult {
       dist: values.dist,
       tag: values.tag,
       json: Boolean(values.json),
-      capabilities: Boolean(values.capabilities),
     },
   };
 }
@@ -60,7 +57,6 @@ export function printUsage(logger: { log: (m: string) => void } = console): void
 
 Usage:
   prepare-dist [--path <dir>] [--dist <name>] [--tag <tag>] [--json]
-  prepare-dist --capabilities [--json]
   prepare-dist --help
 
 Options:
@@ -68,7 +64,6 @@ Options:
   --dist <name>     dist subdirectory (default: "dist")
   --tag <tag>       git tag to verify against package.json#version
   --json            emit a machine-readable PrepareDistReport
-  --capabilities    emit a CapabilitiesReport describing the CLI surface
   --help            show this help
 
 When invoked from a GitHub Action, INPUT_PATH / INPUT_DIST / INPUT_TAG
@@ -94,12 +89,6 @@ export async function runCli(
 
   if (helpRequested) {
     printUsage(logger);
-    return EXIT.SUCCESS;
-  }
-
-  if (options.capabilities) {
-    const report = buildCapabilitiesReport();
-    logger.log(JSON.stringify(report, null, 2));
     return EXIT.SUCCESS;
   }
 

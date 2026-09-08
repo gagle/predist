@@ -36,7 +36,9 @@ function transformSchemaEntry(entry: SchemaEntry, packageDir: string, distDir: s
   entry.schema = strippedPath;
 }
 
-function transformNxConfigs({ packageDir, distDir, distName }: PrepareDistContext): void {
+function transformNxConfigs({ packageDir, distDir, distName }: PrepareDistContext): boolean {
+  let applied = false;
+
   for (const configName of NX_CONFIG_FILES) {
     const configPath = resolve(packageDir, configName);
     if (!existsSync(configPath)) {
@@ -57,7 +59,10 @@ function transformNxConfigs({ packageDir, distDir, distName }: PrepareDistContex
     }
 
     writeFileSync(resolve(distDir, configName), JSON.stringify(config, null, 2) + '\n');
+    applied = true;
   }
+
+  return applied;
 }
 
 export function nxConfigPlugin(): PrepareDistPlugin {

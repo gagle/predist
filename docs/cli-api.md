@@ -18,7 +18,6 @@ backwards-compat guarantees.
 | --- | --- | --- |
 | Exit codes (`EXIT.*` constants) | **Stable** | New codes may be added; existing codes never change meaning |
 | `--json` schema (`PrepareDistReport`) | **Evolving additively** | `schemaVersion` bumps on additive changes |
-| `--capabilities --json` schema (`CapabilitiesReport`) | **Evolving additively** | `schemaVersion` bumps on additive changes |
 | GitHub Action inputs (`path`, `dist`, `tag`) | **Stable** | New inputs may be added |
 | Library exports (`prepareDist`, `stripDistPrefix`, types) | **Stable** | Direct ES module imports for in-process use |
 | Human/text CLI output | **Best-effort** | Don't parse it. Use `--json`. |
@@ -40,11 +39,7 @@ when reading new fields.
 | `--dist <name>` | string | Dist subdirectory name (default: `dist`) |
 | `--tag <tag>` | string | Git tag to verify against `package.json#version`. Tag may be `v1.2.3` or `<component>-v1.2.3`. |
 | `--json` | boolean | Emit a machine-readable `PrepareDistReport` instead of human text |
-| `--capabilities` | boolean | Emit a `CapabilitiesReport` describing the CLI surface |
 | `--help` | boolean | Show help message |
-
-`--json` and `--capabilities` may be combined: `--capabilities --json`
-emits the capabilities descriptor (which is JSON-only).
 
 ---
 
@@ -101,7 +96,7 @@ interface PrepareDistReport {
     strippedFields: string[];        // e.g., ["scripts", "devDependencies"]
     distPrefixStripped: number;      // count of paths rewritten (./dist/foo → ./foo)
     metadataCopied: string[];        // ["README.md", "LICENSE"]
-    pluginsApplied: string[];        // ["nx-config", "custom-elements-manifest"]
+    pluginsApplied: string[];        // only plugins that actually changed something, e.g. ["external-bin"]
   };
   versionVerification: {
     tag: string;
@@ -112,24 +107,6 @@ interface PrepareDistReport {
   durationMs: number;
 }
 ```
-
-### `--capabilities --json` → `CapabilitiesReport`
-
-```ts
-interface CapabilitiesReport {
-  schemaVersion: 1;
-  name: 'prepare-dist';
-  version: string;            // semver from package.json
-  features: ReadonlyArray<string>;
-  flags: ReadonlyArray<{ name: string; type: 'boolean' | 'string' }>;
-  jsonSchemas: ReadonlyArray<{ flag: string; schema: string; version: number }>;
-  exitCodes: ReadonlyArray<{ code: number; name: string }>;
-}
-```
-
-The `CapabilitiesReport` is intended for solo-npm-style orchestrators
-that want to discover what `prepare-dist` can do at runtime
-(e.g., before deciding which features to invoke).
 
 ---
 
@@ -147,8 +124,6 @@ import {
   parseCliArgs,
   formatPrepareDistReportHuman,
   CliError,
-  // capabilities
-  buildCapabilitiesReport,
   // exit codes
   EXIT,
   // types
@@ -156,7 +131,6 @@ import {
   type PrepareDistContext,
   type PrepareDistPlugin,
   type PrepareDistReport,
-  type CapabilitiesReport,
   type ExitCode,
   type Logger,
   type RuntimeLogger,

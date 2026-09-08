@@ -35,19 +35,6 @@ describe('CLI e2e', () => {
       const result = runCli(['--help']);
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('prepare-dist');
-      expect(result.stdout).toContain('--capabilities');
-    });
-  });
-
-  describe('--capabilities --json', () => {
-    it('emits a CapabilitiesReport', () => {
-      const result = runCli(['--capabilities', '--json']);
-      expect(result.exitCode).toBe(0);
-      const parsed: unknown = JSON.parse(result.stdout);
-      expect(parsed).toMatchObject({
-        schemaVersion: 1,
-        name: 'prepare-dist',
-      });
     });
   });
 

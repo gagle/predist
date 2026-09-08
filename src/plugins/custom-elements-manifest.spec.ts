@@ -23,15 +23,16 @@ describe('customElementsManifestPlugin', () => {
   const plugin = customElementsManifestPlugin();
 
   describe('no custom-elements.json', () => {
-    it('does nothing when file does not exist', () => {
-      plugin.execute({ packageDir, distDir, distName: 'dist' });
+    it('does nothing and returns false when file does not exist', () => {
+      const applied = plugin.execute({ packageDir, distDir, distName: 'dist' });
 
       expect(existsSync(join(distDir, 'custom-elements.json'))).toBe(false);
+      expect(applied).toBe(false);
     });
   });
 
   describe('strips dist prefix', () => {
-    it('strips ./dist/ prefix from paths', () => {
+    it('strips ./dist/ prefix from paths and returns true', () => {
       const manifest = {
         schemaVersion: '1.0.0',
         modules: [
@@ -43,10 +44,11 @@ describe('customElementsManifestPlugin', () => {
       };
       writeFileSync(join(packageDir, 'custom-elements.json'), JSON.stringify(manifest, null, 2));
 
-      plugin.execute({ packageDir, distDir, distName: 'dist' });
+      const applied = plugin.execute({ packageDir, distDir, distName: 'dist' });
 
       const result = JSON.parse(readFileSync(join(distDir, 'custom-elements.json'), 'utf-8'));
       expect(result.modules[0].path).toBe('./components/button.js');
+      expect(applied).toBe(true);
     });
 
     it('strips bare dist/ prefix from paths', () => {

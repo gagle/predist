@@ -3,17 +3,18 @@ import { resolve } from 'node:path';
 import type { PrepareDistContext, PrepareDistPlugin } from '../types';
 import { stripDistPrefix } from '../strip-dist-prefix';
 
-function transformCustomElementsManifest({ packageDir, distDir, distName }: PrepareDistContext): void {
+function transformCustomElementsManifest({ packageDir, distDir, distName }: PrepareDistContext): boolean {
   const source = resolve(packageDir, 'custom-elements.json');
 
   if (!existsSync(source)) {
-    return;
+    return false;
   }
 
   const raw = readFileSync(source, 'utf-8');
   const stripped = stripDistPrefix(raw, distName);
 
   writeFileSync(resolve(distDir, 'custom-elements.json'), stripped);
+  return true;
 }
 
 export function customElementsManifestPlugin(): PrepareDistPlugin {

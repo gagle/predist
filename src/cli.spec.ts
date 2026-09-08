@@ -59,10 +59,9 @@ describe('parseCliArgs', () => {
     expect(result.helpRequested).toBe(false);
   });
 
-  it('parses --json and --capabilities as booleans', () => {
-    const result = parseCliArgs(['--json', '--capabilities']);
+  it('parses --json as a boolean', () => {
+    const result = parseCliArgs(['--json']);
     expect(result.options.json).toBe(true);
-    expect(result.options.capabilities).toBe(true);
   });
 
   it('reports helpRequested when --help is passed', () => {
@@ -70,10 +69,9 @@ describe('parseCliArgs', () => {
     expect(result.helpRequested).toBe(true);
   });
 
-  it('defaults json/capabilities to false when omitted', () => {
+  it('defaults json to false when omitted', () => {
     const result = parseCliArgs([]);
     expect(result.options.json).toBe(false);
-    expect(result.options.capabilities).toBe(false);
   });
 });
 
@@ -83,7 +81,6 @@ describe('printUsage', () => {
     printUsage(logger);
     expect(logger.logs[0]).toContain('prepare-dist');
     expect(logger.logs[0]).toContain('--path');
-    expect(logger.logs[0]).toContain('--capabilities');
   });
 });
 
@@ -187,14 +184,6 @@ describe('runCli', () => {
     const code = await runCli(['--bogus'], logger);
     expect(code).toBe(EXIT.CONFIGURATION_ERROR);
     expect(logger.errors.some((e) => e.includes('Run with --help'))).toBe(true);
-  });
-
-  it('emits CapabilitiesReport JSON when --capabilities is passed', async () => {
-    const logger = createLogger();
-    const code = await runCli(['--capabilities'], logger);
-    expect(code).toBe(EXIT.SUCCESS);
-    const parsed: unknown = JSON.parse(logger.logs[0] ?? '');
-    expect(parsed).toMatchObject({ schemaVersion: 1, name: 'prepare-dist' });
   });
 
   it('returns MISSING_INPUTS when dist directory is absent', async () => {
