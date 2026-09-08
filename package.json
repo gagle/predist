@@ -1,6 +1,6 @@
 {
   "name": "prepare-dist",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "GitHub Action + CLI that prepares a dist directory for npm publishing",
   "type": "module",
   "main": "./dist/index.mjs",
